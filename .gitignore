@@ -1,0 +1,22 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Maven & Build artifacts
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# Node & Frontend artifacts
+**/node_modules/
+**/dist/
+**/build/
+.npm
