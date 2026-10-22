@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { API_BASE_URL } from '../axiosInstance';
 import { 
   LayoutDashboard, 
   Users, 
@@ -90,7 +91,7 @@ const Navbar = () => {
               </Link>
 
               <a 
-                href="http://localhost:8080/swagger-ui.html" 
+                href={`${API_BASE_URL}/swagger-ui.html`} 
                 target="_blank" 
                 rel="noreferrer" 
                 className="btn btn-sm d-flex align-items-center gap-2 rounded-3 px-3 py-2 text-secondary fw-medium border-0 hover-bg-light"

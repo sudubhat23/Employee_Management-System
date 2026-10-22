@@ -139,6 +139,48 @@ docker-compose up --build
 
 ---
 
+## 🌐 Deploy to Render (Public Cloud Deployment)
+
+NexusEMS is cloud-ready and configured for deployment on [Render](https://render.com/).
+
+### Method 1: Using `render.yaml` Blueprint (Automated)
+1. Push your latest code to your GitHub repository.
+2. Log into [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** → **Blueprint**.
+4. Connect your `Employee_Management-System` repository.
+5. Render will automatically detect `render.yaml` and configure both services:
+   - **`ems-backend`**: Docker Web Service (Spring Boot 3 + H2 In-Memory DB).
+   - **`ems-frontend`**: Static Site (React 19 + Vite with SPA rewrite rules).
+6. Set the `VITE_API_BASE_URL` environment variable on the frontend to your backend Render URL (e.g., `https://ems-backend-xxxx.onrender.com`).
+7. Click **Apply** to deploy!
+
+### Method 2: Manual Dashboard Deployment
+
+#### 1. Deploy Backend Web Service
+* **Service Type**: Web Service
+* **Runtime**: Docker
+* **Root Directory**: `EmployeeManagementCRUD`
+* **Dockerfile Path**: `Dockerfile`
+* **Instance Type**: Free
+* **Environment Variables**:
+  * `PORT` = `8080`
+  * `SPRING_PROFILES_ACTIVE` = `default` (H2 zero-config DB pre-seeded with admin: `admin` / `admin123`)
+* Copy the deployed backend URL (e.g. `https://ems-backend.onrender.com`).
+
+#### 2. Deploy Frontend Static Site
+* **Service Type**: Static Site
+* **Root Directory**: `ReactForEmployee/Employee-Management-System`
+* **Build Command**: `npm install && npm run build`
+* **Publish Directory**: `dist`
+* **Redirects / Rewrites**:
+  * Source: `/*`
+  * Destination: `/index.html`
+  * Action: `Rewrite`
+* **Environment Variables**:
+  * `VITE_API_BASE_URL` = `https://<your-backend-app-name>.onrender.com`
+
+---
+
 ## 👨‍💻 Author
 
 **Sudarshan Bhat**  

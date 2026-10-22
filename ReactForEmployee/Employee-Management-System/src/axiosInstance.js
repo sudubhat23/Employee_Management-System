@@ -1,14 +1,14 @@
 import axios from "axios";
 
-// Default API Base URL (Spring Boot Backend)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         "Content-Type": "application/json"
     },
-    timeout: 6000
+    // 60s timeout allows Render free-tier web services to wake up from cold start
+    timeout: 60000
 });
 
 // Request Interceptor: Attach JWT Token if available
