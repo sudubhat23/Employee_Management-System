@@ -36,6 +36,9 @@ public class UserController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
+    private com.SpringBoot.Rpository.EmployeeRepo employeeRepo;
+
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -68,6 +71,12 @@ public class UserController {
         User newUser = userService.addUser(user);
         String token = jwtUtils.generateToken(newUser.getUsername());
 
+        Integer empId = newUser.getEmployeeId();
+        if (empId == null && newUser.getEmail() != null) {
+            employeeRepo.findByEmailIgnoreCase(newUser.getEmail()).ifPresent(e -> newUser.setEmployeeId(e.getId()));
+            empId = newUser.getEmployeeId();
+        }
+
         AuthResponse authResponse = new AuthResponse(
                 token,
                 newUser.getId(),
@@ -75,7 +84,8 @@ public class UserController {
                 newUser.getEmail(),
                 newUser.getFirstname(),
                 newUser.getLastname(),
-                newUser.getRole()
+                newUser.getRole(),
+                empId
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
@@ -98,6 +108,16 @@ public class UserController {
 
                 session.setAttribute("user", loginRequest.getUsername());
 
+                Integer empId = dbUser != null ? dbUser.getEmployeeId() : null;
+                if (empId == null && dbUser != null && dbUser.getEmail() != null) {
+                    var empOpt = employeeRepo.findByEmailIgnoreCase(dbUser.getEmail());
+                    if (empOpt.isPresent()) {
+                        empId = empOpt.get().getId();
+                        dbUser.setEmployeeId(empId);
+                        userRepo.save(dbUser);
+                    }
+                }
+
                 AuthResponse authResponse = new AuthResponse(
                         token,
                         dbUser != null ? dbUser.getId() : 1,
@@ -105,7 +125,8 @@ public class UserController {
                         dbUser != null ? dbUser.getEmail() : loginRequest.getUsername() + "@company.com",
                         dbUser != null ? dbUser.getFirstname() : "Admin",
                         dbUser != null ? dbUser.getLastname() : "User",
-                        dbUser != null ? dbUser.getRole() : "ROLE_ADMIN"
+                        dbUser != null ? dbUser.getRole() : "ROLE_ADMIN",
+                        empId
                 );
 
                 return ResponseEntity.ok(authResponse);

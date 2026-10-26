@@ -19,7 +19,14 @@ public class UserPrinciple implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Collections.singleton(new SimpleGrantedAuthority("USER"));
+		String role = user.getRole();
+		if (role == null || role.isBlank()) {
+			role = "ROLE_EMPLOYEE";
+		}
+		if (!role.startsWith("ROLE_")) {
+			role = "ROLE_" + role;
+		}
+		return Collections.singleton(new SimpleGrantedAuthority(role));
 	}
 
 	@Override

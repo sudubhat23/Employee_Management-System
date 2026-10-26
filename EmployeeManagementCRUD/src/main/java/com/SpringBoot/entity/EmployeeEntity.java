@@ -172,6 +172,14 @@ public class EmployeeEntity {
         this.status = status;
     }
 
+    private String bio;
+
+    private String skills;
+
+    private String emergencyContact;
+
+    private String address;
+
     public LocalDate getJoiningDate() {
         return joiningDate;
     }
@@ -186,6 +194,38 @@ public class EmployeeEntity {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getSkills() {
+        return skills;
+    }
+
+    public void setSkills(String skills) {
+        this.skills = skills;
+    }
+
+    public String getEmergencyContact() {
+        return emergencyContact;
+    }
+
+    public void setEmergencyContact(String emergencyContact) {
+        this.emergencyContact = emergencyContact;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     @Override

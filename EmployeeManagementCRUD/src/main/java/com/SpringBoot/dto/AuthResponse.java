@@ -9,6 +9,7 @@ public class AuthResponse {
     private String firstname;
     private String lastname;
     private String role;
+    private Integer employeeId;
 
     public AuthResponse() {}
 
@@ -21,6 +22,20 @@ public class AuthResponse {
         this.lastname = lastname;
         this.role = role;
     }
+
+    public AuthResponse(String token, Integer id, String username, String email, String firstname, String lastname, String role, Integer employeeId) {
+        this.token = token;
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.role = role;
+        this.employeeId = employeeId;
+    }
+
+    public Integer getEmployeeId() { return employeeId; }
+    public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }

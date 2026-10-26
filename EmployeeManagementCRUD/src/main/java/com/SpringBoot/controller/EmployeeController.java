@@ -80,6 +80,16 @@ public class EmployeeController {
         return ResponseEntity.ok(updated);
     }
 
+    @Operation(summary = "Self-service update of personal employee details (Employee portal)")
+    @PutMapping("/{id}/self-update")
+    public ResponseEntity<EmployeeEntity> selfUpdateEmployee(@PathVariable Integer id, @RequestBody EmployeeEntity employee) {
+        EmployeeEntity updated = employeeService.selfUpdateEmployee(id, employee);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
     @Operation(summary = "Delete employee by ID")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> deleteEmployee(@PathVariable Integer id) {

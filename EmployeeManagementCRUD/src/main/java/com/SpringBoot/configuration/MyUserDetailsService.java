@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import com.SpringBoot.Rpository.UserRepo;
 import com.SpringBoot.entity.User;
 
-	@Service
-	public class MyUserDetailsService {
+@Service
+public class MyUserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
-		private final UserRepo userRepository;
+    private final UserRepo userRepository;
 		
 		public MyUserDetailsService(UserRepo userRepository)
 		{

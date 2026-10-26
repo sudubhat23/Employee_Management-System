@@ -55,10 +55,36 @@ public class EmployeeService {
             if (updateEmp.getSalary() != null) existing.setSalary(updateEmp.getSalary());
             if (updateEmp.getStatus() != null) existing.setStatus(updateEmp.getStatus());
             if (updateEmp.getAvatarUrl() != null) existing.setAvatarUrl(updateEmp.getAvatarUrl());
+            if (updateEmp.getBio() != null) existing.setBio(updateEmp.getBio());
+            if (updateEmp.getSkills() != null) existing.setSkills(updateEmp.getSkills());
+            if (updateEmp.getEmergencyContact() != null) existing.setEmergencyContact(updateEmp.getEmergencyContact());
+            if (updateEmp.getAddress() != null) existing.setAddress(updateEmp.getAddress());
 
             return employeeRepo.save(existing);
         }
         return employeeRepo.save(updateEmp);
+    }
+
+    /**
+     * Self-service employee update: only permits non-administrative personal fields
+     */
+    public EmployeeEntity selfUpdateEmployee(Integer id, EmployeeEntity update) {
+        Optional<EmployeeEntity> existingOpt = employeeRepo.findById(id);
+        if (existingOpt.isPresent()) {
+            EmployeeEntity existing = existingOpt.get();
+            if (update.getFirstName() != null && !update.getFirstName().isBlank()) existing.setFirstName(update.getFirstName());
+            if (update.getLastName() != null && !update.getLastName().isBlank()) existing.setLastName(update.getLastName());
+            if (update.getPhone() != null) existing.setPhone(update.getPhone());
+            if (update.getAge() != null) existing.setAge(update.getAge());
+            if (update.getAvatarUrl() != null) existing.setAvatarUrl(update.getAvatarUrl());
+            if (update.getBio() != null) existing.setBio(update.getBio());
+            if (update.getSkills() != null) existing.setSkills(update.getSkills());
+            if (update.getEmergencyContact() != null) existing.setEmergencyContact(update.getEmergencyContact());
+            if (update.getAddress() != null) existing.setAddress(update.getAddress());
+
+            return employeeRepo.save(existing);
+        }
+        return null;
     }
 
     public Boolean deleteEmployee(Integer id) {

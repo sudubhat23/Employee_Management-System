@@ -28,18 +28,30 @@ const Login = () => {
       // Check if response returned AuthResponse JSON object or string
       if (typeof response.data === 'object') {
         login(response.data);
+        toast.success(`Welcome back, ${response.data.firstname || username}!`);
+        if (response.data.role === 'ROLE_EMPLOYEE') {
+          navigate('/my-profile');
+        } else {
+          navigate('/admin');
+        }
       } else {
         login({ username, role: 'ROLE_ADMIN', firstname: 'Admin', lastname: 'User' });
+        navigate('/admin');
       }
-
-      toast.success(`Welcome back, ${username}!`);
-      navigate('/');
     } catch (error) {
       console.warn("Backend auth failed, using client demo login:", error);
       // Standalone demo login fallback
-      login({ username: username || 'admin', role: 'ROLE_ADMIN', firstname: 'Admin', lastname: 'User' });
-      toast.success("Signed in with Demo Administrator Profile!");
-      navigate('/');
+      const isEmp = username.toLowerCase() === 'sarah' || username.toLowerCase() === 'alex';
+      const role = isEmp ? 'ROLE_EMPLOYEE' : 'ROLE_ADMIN';
+      login({ 
+        username: username || 'admin', 
+        role: role, 
+        firstname: isEmp ? 'Sarah' : 'Admin', 
+        lastname: isEmp ? 'Connor' : 'User',
+        employeeId: isEmp ? 1 : null
+      });
+      toast.success(`Signed in as ${isEmp ? 'Employee' : 'Administrator'}!`);
+      navigate(isEmp ? '/my-profile' : '/admin');
     } finally {
       setLoading(false);
     }
@@ -48,7 +60,13 @@ const Login = () => {
   const autofillDemoAdmin = () => {
     setUsername('admin');
     setPassword('admin123');
-    toast.info("Autofilled Admin Demo Credentials!");
+    toast.info("Autofilled Admin Credentials!");
+  };
+
+  const autofillDemoEmployee = () => {
+    setUsername('sarah');
+    setPassword('employee123');
+    toast.info("Autofilled Employee Credentials (Sarah Connor)!");
   };
 
   return (
@@ -68,22 +86,33 @@ const Login = () => {
                 <Building2 size={32} />
               </div>
               <h3 className="fw-bold mb-1">Nexus<span className="gradient-text">EMS</span></h3>
-              <p className="text-muted fs-sm">Workforce Management & Analytics Portal</p>
+              <p className="text-muted fs-sm">Enterprise Workforce, Security & AI Portal</p>
             </div>
 
             {/* Quick Demo Fill Alert */}
-            <div className="bg-primary-subtle border border-primary-subtle rounded-3 p-3 mb-4 d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center gap-2 fs-xs text-primary fw-medium">
-                <Sparkles size={16} /> Portfolio Reviewer Demo Mode
+            <div className="bg-primary-subtle border border-primary-subtle rounded-3 p-3 mb-4">
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <div className="d-flex align-items-center gap-1.5 fs-xs text-primary fw-semibold">
+                  <Sparkles size={15} /> Quick Role Testing:
+                </div>
               </div>
-              <button 
-                type="button" 
-                onClick={autofillDemoAdmin} 
-                className="btn btn-sm btn-primary border-0 fs-xs py-1 px-2.5 rounded-2 d-flex align-items-center gap-1"
-                style={{ background: 'var(--gradient-primary)' }}
-              >
-                <KeyRound size={13} /> Auto-Fill Admin
-              </button>
+              <div className="d-flex align-items-center gap-2">
+                <button 
+                  type="button" 
+                  onClick={autofillDemoAdmin} 
+                  className="btn btn-sm btn-primary border-0 fs-xs py-1 px-2.5 rounded-2 d-flex align-items-center gap-1 flex-grow-1 justify-content-center"
+                  style={{ background: 'var(--gradient-primary)' }}
+                >
+                  <KeyRound size={13} /> Admin
+                </button>
+                <button 
+                  type="button" 
+                  onClick={autofillDemoEmployee} 
+                  className="btn btn-sm btn-outline-primary bg-white fs-xs py-1 px-2.5 rounded-2 d-flex align-items-center gap-1 flex-grow-1 justify-content-center"
+                >
+                  <User size={13} /> Employee
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleLogin}>

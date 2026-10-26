@@ -48,12 +48,22 @@ public class User {
         this.role = role != null ? role : "ROLE_ADMIN";
     }
 
+    private Integer employeeId;
+
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(Integer employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getFirstname() {
@@ -106,6 +116,6 @@ public class User {
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", username=" + username + ", role=" + role + "]";
+        return "User [id=" + id + ", username=" + username + ", role=" + role + ", employeeId=" + employeeId + "]";
     }
 }

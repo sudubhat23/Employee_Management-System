@@ -2,6 +2,10 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
+import AdminPortal from "./pages/AdminPortal";
+import EmployeePortal from "./pages/EmployeePortal";
+import OfficialCommunication from "./pages/OfficialCommunication";
+import AiAssistant from "./pages/AiAssistant";
 import ViewEmployee from "./pages/ViewEmployee";
 import AddEmployee from "./pages/AddEmployee";
 import UpdateEmployee from "./pages/UpdateEmployee";
@@ -9,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { AuthProvider } from "./AuthContext";
 import ProtectedRoutes from "./components/ProtectedRoutes";
+import AiCopilotWidget from "./components/AiCopilotWidget";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -21,6 +26,11 @@ const App = () => {
         <main className="pb-5">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminPortal />} />
+            <Route path="/my-profile" element={<EmployeePortal />} />
+            <Route path="/employee-portal" element={<EmployeePortal />} />
+            <Route path="/communication" element={<OfficialCommunication />} />
+            <Route path="/ai-assistant" element={<AiAssistant />} />
             <Route path="/employees" element={<ViewEmployee />} />
             <Route path="/add-employee" element={<AddEmployee />} />
             <Route path="/addEmp" element={<Navigate to="/add-employee" replace />} />
@@ -31,6 +41,8 @@ const App = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        {/* Persistent Floating AI Copilot Widget */}
+        <AiCopilotWidget />
       </BrowserRouter>
     </AuthProvider>
   );

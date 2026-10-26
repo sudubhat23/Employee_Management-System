@@ -12,6 +12,8 @@ import com.SpringBoot.entity.EmployeeEntity;
 @Repository
 public interface EmployeeRepo extends JpaRepository<EmployeeEntity, Integer> {
 
+    java.util.Optional<EmployeeEntity> findByEmailIgnoreCase(String email);
+
     Page<EmployeeEntity> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDeptContainingIgnoreCase(
         String fn, String ln, String email, String dept, Pageable pageable
     );

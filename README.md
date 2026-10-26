@@ -7,11 +7,30 @@
 [![Swagger](https://img.shields.io/badge/OpenAPI-Swagger_3.0-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](http://localhost:8080/swagger-ui.html)
 [![License](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge)](LICENSE)
 
-A full-stack, enterprise-grade Employee Management System featuring an **Executive Analytics Dashboard**, **JWT Authentication & Role-Based Authorization**, **Interactive OpenAPI 3.0 Documentation**, **Dynamic Pagination & Multi-field Filtering**, **CSV Reporting**, and **Docker Containerization**.
+A full-stack, enterprise-grade Employee Management System featuring **Nexus AI Workforce Copilot**, **Admin & Manager Control Hub**, **Employee Self-Service Portal**, **Official Internal Communications Hub**, **Executive Analytics Dashboard**, **JWT Authentication & Role-Based Authorization**, **17 Automated JUnit 5 Tests**, **Interactive OpenAPI 3.0 Documentation**, and **Docker Containerization**.
 
 ---
 
 ## 🌟 Key Features & Highlights
+
+### 🤖 Nexus AI Workforce Copilot
+* **Natural Language Queries**: Ask for real-time details about any colleague (*"Give me details about Sarah Connor"*), department rosters (*"Show Engineering headcount"*), or leave status (*"Who is on leave?"*).
+* **HR Policy Assistant**: Instant answers for annual paid vacation, sick leave, remote work guidelines, and benefits.
+* **Document Synthesis**: Generate official corporate announcements, team townhall notices, and employee performance summaries.
+* **Full-Page & Floating Widget**: Accessible both as a dedicated AI Assistant tab and as a floating bottom-right copilot widget across all views.
+
+### 👑 Admin & Manager Control Hub (`/admin`)
+* **KPI Metrics**: Real-time staff count, active on-duty percentage, approved PTO/leave counts, and annual payroll expense.
+* **Comprehensive Oversight**: Search, department filtering, status toggling, compensation adjustments, and CSV report exports.
+
+### 👤 Employee Self-Service Portal (`/my-profile`)
+* **Personal Profile Editing**: Employees can edit their phone number, avatar URL, professional bio, core skills tags, emergency contact, and residential address.
+* **Security & Tamper Protection**: Sensitive corporate records (salary, designation, department, employment status) are strictly locked and cannot be altered by employees.
+
+### 💬 Official Internal Communications Hub (`/communication`)
+* **Department Broadcast Channels**: `#general-announcements`, `#engineering-team`, `#human-resources`, `#product-design`, and `#finance-approvals`.
+* **Direct 1-on-1 Messages**: Encrypted, logged official direct messaging with online status indicators.
+* **Official Category Tagging**: Categorize messages as `General`, `Urgent`, `Project Update`, `HR Inquiry`, or `Corporate Notice`.
 
 ### 📊 Executive Analytics Dashboard
 * **Workforce KPIs**: Real-time stats on Total Staff Count, Active Status percentages, Department counts, and Total Monthly Payroll expense calculations.
@@ -26,11 +45,12 @@ A full-stack, enterprise-grade Employee Management System featuring an **Executi
 
 ### 🔐 Security & Database Engineering
 * **JWT Authentication**: Secure stateless token issuance (`/login` & `/register`) with BCrypt password hashing and Spring Security filter chains.
+* **Role-Based Access Control**: Distinguishes `ROLE_ADMIN`, `ROLE_MANAGER`, and `ROLE_EMPLOYEE`.
 * **Dual Database Mode (Zero-Config Testing)**:
   * **H2 In-Memory DB Profile**: Zero-setup plug-and-play mode with pre-seeded mock dataset (`DataInitializer`) for instant reviewer evaluation.
   * **MySQL Enterprise Profile**: Production-ready MySQL configuration.
 * **OpenAPI 3.0 / Swagger UI Integration**: Live, interactive API documentation accessible at `/swagger-ui.html`.
-* **Standalone Demo Fallback**: Frontend gracefully activates interactive standalone mock mode if the Java backend is offline.
+* **Automated JUnit 5 Test Suite**: 17 comprehensive unit and integration tests passing green.
 
 ---
 
