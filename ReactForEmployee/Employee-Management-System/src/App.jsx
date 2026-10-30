@@ -25,20 +25,25 @@ const App = () => {
         <ToastContainer position="top-right" autoClose={3000} theme="colored" />
         <main className="pb-5">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/admin" element={<AdminPortal />} />
-            <Route path="/my-profile" element={<EmployeePortal />} />
-            <Route path="/employee-portal" element={<EmployeePortal />} />
-            <Route path="/communication" element={<OfficialCommunication />} />
-            <Route path="/ai-assistant" element={<AiAssistant />} />
-            <Route path="/employees" element={<ViewEmployee />} />
-            <Route path="/add-employee" element={<AddEmployee />} />
-            <Route path="/addEmp" element={<Navigate to="/add-employee" replace />} />
-            <Route path="/update-employee/:id" element={<UpdateEmployee />} />
-            <Route path="/updateEmp/:empid" element={<UpdateEmployee />} />
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+
+            {/* Protected Routes */}
+            <Route path="/" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
+            <Route path="/admin" element={<ProtectedRoutes><AdminPortal /></ProtectedRoutes>} />
+            <Route path="/my-profile" element={<ProtectedRoutes><EmployeePortal /></ProtectedRoutes>} />
+            <Route path="/employee-portal" element={<ProtectedRoutes><EmployeePortal /></ProtectedRoutes>} />
+            <Route path="/communication" element={<ProtectedRoutes><OfficialCommunication /></ProtectedRoutes>} />
+            <Route path="/ai-assistant" element={<ProtectedRoutes><AiAssistant /></ProtectedRoutes>} />
+            <Route path="/employees" element={<ProtectedRoutes><ViewEmployee /></ProtectedRoutes>} />
+            <Route path="/add-employee" element={<ProtectedRoutes><AddEmployee /></ProtectedRoutes>} />
+            <Route path="/addEmp" element={<Navigate to="/add-employee" replace />} />
+            <Route path="/update-employee/:id" element={<ProtectedRoutes><UpdateEmployee /></ProtectedRoutes>} />
+            <Route path="/updateEmp/:empid" element={<ProtectedRoutes><UpdateEmployee /></ProtectedRoutes>} />
+
+            {/* Catch all - redirect to login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </main>
         {/* Persistent Floating AI Copilot Widget */}

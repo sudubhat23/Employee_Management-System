@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         const auth = localStorage.getItem('isAuthenticated');
-        return auth !== null ? auth === 'true' : true; // Default logged in for interactive demo
+        return auth !== null ? auth === 'true' : false; // Require login by default
     });
 
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
