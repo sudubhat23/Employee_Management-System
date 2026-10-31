@@ -132,7 +132,8 @@ const ViewEmployee = () => {
     return (a.id || 0) - (b.id || 0);
   });
 
-  // Note: Server-side pagination handles this now, employees is already paginated
+  // Calculate totalPages from totalEmployees (for pagination UI)
+  const totalPages = Math.ceil(totalEmployees / pageSize) || 1;
 
   return (
     <div className="container-fluid px-4 py-4 animate-fade-in">
@@ -445,22 +446,22 @@ const ViewEmployee = () => {
       {totalPages > 1 && (
         <div className="d-flex align-items-center justify-content-between glass-card p-3">
           <div className="text-muted fs-xs">
-            Showing Page <span className="fw-semibold text-main">{currentPage}</span> of <span className="fw-semibold text-main">{totalPages}</span>
+            Showing Page <span className="fw-semibold text-main">{currentPage + 1}</span> of <span className="fw-semibold text-main">{totalPages}</span>
           </div>
 
           <div className="d-flex gap-2">
-            <button 
-              className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1" 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            <button
+              className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1"
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
             >
               <ChevronLeft size={16} /> Previous
             </button>
 
-            <button 
-              className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1" 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            <button
+              className="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
             >
               Next <ChevronRight size={16} />
             </button>
