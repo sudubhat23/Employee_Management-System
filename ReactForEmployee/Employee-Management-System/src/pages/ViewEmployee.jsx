@@ -132,12 +132,7 @@ const ViewEmployee = () => {
     return (a.id || 0) - (b.id || 0);
   });
 
-  // Pagination Math
-  const totalPages = Math.ceil(sortedEmployees.length / itemsPerPage) || 1;
-  const paginatedEmployees = sortedEmployees.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Note: Server-side pagination handles this now, employees is already paginated
 
   return (
     <div className="container-fluid px-4 py-4 animate-fade-in">
@@ -257,7 +252,7 @@ const ViewEmployee = () => {
           <div className="spinner-border text-primary mb-2" role="status" />
           <div>Loading workforce directory...</div>
         </div>
-      ) : paginatedEmployees.length === 0 ? (
+      ) : employees.length === 0 ? (
         <div className="glass-card p-5 text-center text-muted">
           <h5>No employees match your search parameters.</h5>
           <p className="fs-sm mb-3">Try clearing search filters or add a new employee.</p>
@@ -283,7 +278,7 @@ const ViewEmployee = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedEmployees.map(emp => {
+                {employees.map(emp => {
                   const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee';
                   return (
                     <tr key={emp.id}>
@@ -374,7 +369,7 @@ const ViewEmployee = () => {
 
         /* Grid View Cards */
         <div className="row g-4 mb-4">
-          {paginatedEmployees.map(emp => {
+          {employees.map(emp => {
             const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee';
             return (
               <div key={emp.id} className="col-12 col-sm-6 col-lg-4 col-xl-3">
