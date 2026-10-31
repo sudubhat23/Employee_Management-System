@@ -36,6 +36,9 @@ const AdminPortal = () => {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalEmployees, setTotalEmployees] = useState(0);
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -45,30 +48,44 @@ const AdminPortal = () => {
     totalSalaryExpense: 0
   });
 
-  const fetchData = async () => {
+  const fetchData = async (page = 0, searchTerm = '', dept = 'ALL', status = 'ALL') => {
     setLoading(true);
     try {
-      // Fetch all employees
-      const empRes = await axiosInstance.get('/employee/all');
-      if (Array.isArray(empRes.data)) {
-        setEmployees(empRes.data);
+      // OPTIMIZED: Fetch paginated employees (only 10 at a time, not all!)
+      const empRes = await axiosInstance.get('/employee/paged', {
+        params: {
+          page: page,
+          size: pageSize,
+          search: searchTerm,
+          dept: dept,
+          status: status,
+          sortBy: 'id',
+          sortDir: 'asc'
+        },
+        timeout: 10000
+      });
+
+      if (empRes.data && empRes.data.content) {
+        setEmployees(empRes.data.content);
+        setTotalEmployees(empRes.data.totalElements);
       }
 
-      // Fetch stats
-      const statsRes = await axiosInstance.get('/employee/stats');
+      // Fetch stats (cached in backend)
+      const statsRes = await axiosInstance.get('/employee/stats', { timeout: 5000 });
       if (statsRes.data) {
         setStats(statsRes.data);
       }
     } catch (err) {
-      console.warn("Backend load failed, using local fallback if needed:", err);
+      console.error("Error loading data:", err);
+      toast.error("Failed to load employees. Using demo data.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(currentPage, search, selectedDept, selectedStatus);
+  }, [currentPage, search, selectedDept, selectedStatus]);
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to remove ${name} from the employee records?`)) {

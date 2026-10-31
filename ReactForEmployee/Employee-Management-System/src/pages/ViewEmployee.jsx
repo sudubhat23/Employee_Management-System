@@ -33,8 +33,9 @@ const ViewEmployee = () => {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
   
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalEmployees, setTotalEmployees] = useState(0);
 
   // Selected Employee Modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -44,21 +45,36 @@ const ViewEmployee = () => {
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [currentPage, searchTerm, selectedDept, selectedStatus, sortBy]);
 
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get('/employee/all');
-      if (response.data && Array.isArray(response.data)) {
-        setEmployees(response.data);
+      // OPTIMIZED: Use paginated endpoint instead of loading all
+      const response = await axiosInstance.get('/employee/paged', {
+        params: {
+          page: currentPage,
+          size: pageSize,
+          search: searchTerm,
+          dept: selectedDept,
+          status: selectedStatus,
+          sortBy: sortBy,
+          sortDir: 'asc'
+        },
+        timeout: 10000
+      });
+
+      if (response.data && response.data.content) {
+        setEmployees(response.data.content);
+        setTotalEmployees(response.data.totalElements);
+        setIsDemoMode(false);
       } else {
-        setEmployees(INITIAL_MOCK_EMPLOYEES);
+        throw new Error("Invalid response");
       }
-      setIsDemoMode(false);
     } catch (error) {
-      console.warn("Backend server not reachable, switching to interactive standalone demo dataset:", error);
+      console.warn("Backend error, using demo data:", error);
       setEmployees(INITIAL_MOCK_EMPLOYEES);
+      setTotalEmployees(INITIAL_MOCK_EMPLOYEES.length);
       setIsDemoMode(true);
     } finally {
       setLoading(false);
