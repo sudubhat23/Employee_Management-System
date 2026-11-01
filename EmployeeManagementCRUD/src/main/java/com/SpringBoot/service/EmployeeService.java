@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
 
 import com.SpringBoot.Rpository.EmployeeRepo;
@@ -95,50 +97,67 @@ public class EmployeeService {
         return false;
     }
 
-    public Page<EmployeeEntity> searchAndFilterEmployees(
-            String search, String dept, String status, 
-            int page, int size, String sortBy, String sortDir) {
+    private static final Set<String> SORTABLE_FIELDS =
+            Set.of("id", "firstName", "lastName", "email", "dept", "status", "salary", "joiningDate");
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
-                Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    /** Combines search, department and status filters in ONE query (they used to be mutually exclusive). */
+    private Specification<EmployeeEntity> buildFilter(String search, String dept, String status) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        if (search != null && !search.trim().isEmpty()) {
-            String term = search.trim();
-            return employeeRepo.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDeptContainingIgnoreCase(
-                    term, term, term, term, pageable);
-        }
-
-        if (dept != null && !dept.trim().isEmpty() && !dept.equalsIgnoreCase("ALL")) {
-            return employeeRepo.findByDeptIgnoreCase(dept.trim(), pageable);
-        }
-
-        if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("ALL")) {
-            return employeeRepo.findByStatusIgnoreCase(status.trim(), pageable);
-        }
-
-        return employeeRepo.findAll(pageable);
+            if (search != null && !search.isBlank()) {
+                String like = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("firstName")), like),
+                        cb.like(cb.lower(root.get("lastName")), like),
+                        cb.like(cb.lower(root.get("email")), like),
+                        cb.like(cb.lower(root.get("dept")), like)));
+            }
+            if (dept != null && !dept.isBlank() && !"ALL".equalsIgnoreCase(dept.trim())) {
+                predicates.add(cb.equal(cb.lower(root.get("dept")), dept.trim().toLowerCase()));
+            }
+            if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status.trim())) {
+                predicates.add(cb.equal(cb.lower(root.get("status")), status.trim().toLowerCase()));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
+    public Page<EmployeeEntity> searchAndFilterEmployees(
+            String search, String dept, String status,
+            int page, int size, String sortBy, String sortDir) {
+
+        // Guard against invalid sort fields (previously caused a 500 error)
+        String field = SORTABLE_FIELDS.contains(sortBy) ? sortBy : "id";
+        Sort sort = "desc".equalsIgnoreCase(sortDir) ? Sort.by(field).descending() : Sort.by(field).ascending();
+
+        // Cap page size so one request can't pull the whole table
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize, sort);
+
+        return employeeRepo.findAll(buildFilter(search, dept, status), pageable);
+    }
+
+    /** Stats are computed by the database with aggregate queries, not by loading every row. */
     public EmployeeStatsResponse getEmployeeStats() {
-        List<EmployeeEntity> all = employeeRepo.findAll();
-        long total = all.size();
-        long active = all.stream().filter(e -> "ACTIVE".equalsIgnoreCase(e.getStatus())).count();
-        long onLeave = all.stream().filter(e -> "ON_LEAVE".equalsIgnoreCase(e.getStatus())).count();
+        long total = employeeRepo.countAllEmployees();
+        long active = employeeRepo.countByStatusIgnoreCase("ACTIVE");
+        long onLeave = employeeRepo.countByStatusIgnoreCase("ON_LEAVE");
 
-        Map<String, Long> deptCounts = all.stream()
-                .filter(e -> e.getDept() != null)
-                .collect(Collectors.groupingBy(EmployeeEntity::getDept, Collectors.counting()));
+        Map<String, Long> deptCounts = new HashMap<>();
+        for (Object[] row : employeeRepo.getDepartmentStats()) {
+            deptCounts.put((String) row[0], ((Number) row[1]).longValue());
+        }
 
-        long deptTotalCount = deptCounts.keySet().size();
+        Double avg = employeeRepo.getAverageSalary();
+        Double payroll = employeeRepo.getTotalSalaryExpense();
 
-        double avgSalary = all.isEmpty() ? 0.0 :
-                all.stream().mapToDouble(e -> e.getSalary() != null ? e.getSalary() : 0.0).average().orElse(0.0);
-
-        double totalPayroll = all.stream()
-                .mapToDouble(e -> e.getSalary() != null ? e.getSalary() : 0.0).sum();
-
-        return new EmployeeStatsResponse(total, active, onLeave, deptTotalCount, avgSalary, totalPayroll, deptCounts);
+        return new EmployeeStatsResponse(
+                total, active, onLeave, deptCounts.size(),
+                avg != null ? avg : 0.0,
+                payroll != null ? payroll : 0.0,
+                deptCounts);
     }
 
     public ByteArrayInputStream exportEmployeesToCsv() {

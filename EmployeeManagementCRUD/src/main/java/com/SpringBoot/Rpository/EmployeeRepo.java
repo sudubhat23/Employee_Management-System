@@ -4,13 +4,14 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.SpringBoot.entity.EmployeeEntity;
 
 @Repository
-public interface EmployeeRepo extends JpaRepository<EmployeeEntity, Integer> {
+public interface EmployeeRepo extends JpaRepository<EmployeeEntity, Integer>, JpaSpecificationExecutor<EmployeeEntity> {
 
     java.util.Optional<EmployeeEntity> findByEmailIgnoreCase(String email);
 
@@ -26,7 +27,12 @@ public interface EmployeeRepo extends JpaRepository<EmployeeEntity, Integer> {
 
     long countByStatus(String status);
 
-    @Query("SELECT e.dept, COUNT(e), SUM(e.salary) FROM EmployeeEntity e GROUP BY e.dept")
+    long countByStatusIgnoreCase(String status);
+
+    @Query("SELECT COUNT(e) FROM EmployeeEntity e")
+    long countAllEmployees();
+
+    @Query("SELECT e.dept, COUNT(e), SUM(e.salary) FROM EmployeeEntity e WHERE e.dept IS NOT NULL GROUP BY e.dept")
     List<Object[]> getDepartmentStats();
 
     @Query("SELECT AVG(e.salary) FROM EmployeeEntity e")

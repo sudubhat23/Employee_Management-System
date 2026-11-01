@@ -48,44 +48,42 @@ const AdminPortal = () => {
     totalSalaryExpense: 0
   });
 
-  const fetchData = async (page = 0, searchTerm = '', dept = 'ALL', status = 'ALL') => {
+  // Wait 300ms after the user stops typing before querying the server
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Only the current page of employees is fetched when page/filters change
+  const fetchEmployeesPage = async (page, searchTerm, dept, status) => {
     setLoading(true);
     try {
-      // OPTIMIZED: Fetch paginated employees (only 10 at a time, not all!)
       const empRes = await axiosInstance.get('/employee/paged', {
-        params: {
-          page: page,
-          size: pageSize,
-          search: searchTerm,
-          dept: dept,
-          status: status,
-          sortBy: 'id',
-          sortDir: 'asc'
-        },
-        timeout: 10000
+        params: { page, size: pageSize, search: searchTerm, dept, status, sortBy: 'id', sortDir: 'asc' },
+        timeout: 15000
       });
-
-      if (empRes.data && empRes.data.content) {
-        setEmployees(empRes.data.content);
-        setTotalEmployees(empRes.data.totalElements);
-      }
-
-      // Fetch stats (cached in backend)
-      const statsRes = await axiosInstance.get('/employee/stats', { timeout: 5000 });
-      if (statsRes.data) {
-        setStats(statsRes.data);
-      }
+      setEmployees(empRes.data?.content ?? []);
+      setTotalEmployees(empRes.data?.totalElements ?? 0);
     } catch (err) {
-      console.error("Error loading data:", err);
-      toast.error("Failed to load employees. Using demo data.");
+      console.error("Error loading employees:", err);
+      toast.error("Could not load employees. The server may still be waking up; please retry in a minute.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Stats are independent of the table, so load them once on mount
+  const refreshStats = () => {
+    axiosInstance.get('/employee/stats', { timeout: 15000 })
+      .then((res) => { if (res.data) setStats(res.data); })
+      .catch((err) => console.error("Error loading stats:", err));
+  };
+  useEffect(() => { refreshStats(); }, []);
+
   useEffect(() => {
-    fetchData(currentPage, search, selectedDept, selectedStatus);
-  }, [currentPage, search, selectedDept, selectedStatus]);
+    fetchEmployeesPage(currentPage, debouncedSearch, selectedDept, selectedStatus);
+  }, [currentPage, debouncedSearch, selectedDept, selectedStatus]);
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to remove ${name} from the employee records?`)) {
@@ -96,8 +94,7 @@ const AdminPortal = () => {
       await axiosInstance.delete(`/employee/${id}`);
       toast.success(`${name} was successfully removed.`);
       setEmployees(prev => prev.filter(e => e.id !== id));
-      // Refresh stats
-      fetchData();
+      refreshStats();
     } catch (err) {
       toast.error("Failed to delete employee: " + (err.response?.data?.message || err.message));
     }
@@ -110,7 +107,7 @@ const AdminPortal = () => {
       await axiosInstance.put(`/employee/${emp.id}`, updated);
       toast.success(`Updated ${emp.name}'s status to ${nextStatus}`);
       setEmployees(prev => prev.map(e => e.id === emp.id ? updated : e));
-      fetchData();
+      refreshStats();
     } catch (err) {
       toast.error("Status update failed");
     }

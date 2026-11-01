@@ -43,9 +43,16 @@ const ViewEmployee = () => {
 
   const navigate = useNavigate();
 
+  // Wait 300ms after typing stops before querying the server
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchEmployees();
-  }, [currentPage, searchTerm, selectedDept, selectedStatus, sortBy]);
+  }, [currentPage, debouncedSearch, selectedDept, selectedStatus, sortBy]);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -55,10 +62,10 @@ const ViewEmployee = () => {
         params: {
           page: currentPage,
           size: pageSize,
-          search: searchTerm,
+          search: debouncedSearch,
           dept: selectedDept,
           status: selectedStatus,
-          sortBy: sortBy,
+          sortBy: sortBy === 'name' ? 'firstName' : sortBy,
           sortDir: 'asc'
         },
         timeout: 10000
@@ -102,35 +109,12 @@ const ViewEmployee = () => {
   // Extract unique departments
   const departments = ['ALL', ...new Set(employees.map(e => e.dept || 'Engineering'))];
 
-  // Filtering & Search
-  const filteredEmployees = employees.filter(emp => {
-    const fullName = (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`).toLowerCase();
-    const email = (emp.email || '').toLowerCase();
-    const dept = (emp.dept || '').toLowerCase();
+  // Search, department and status are filtered by the server in one query,
+  // so the current page is shown as-is (no second client-side filter).
+  const filteredEmployees = employees;
 
-    const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || 
-                          email.includes(searchTerm.toLowerCase()) ||
-                          dept.includes(searchTerm.toLowerCase());
-
-    const matchesDept = selectedDept === 'ALL' || (emp.dept || '').equalsIgnoreCase?.(selectedDept) || emp.dept === selectedDept;
-    const matchesStatus = selectedStatus === 'ALL' || (emp.status || 'ACTIVE') === selectedStatus;
-
-    return matchesSearch && matchesDept && matchesStatus;
-  });
-
-  // Sorting
-  const sortedEmployees = [...filteredEmployees].sort((a, b) => {
-    if (sortBy === 'name') {
-      const nameA = a.name || a.firstName || '';
-      const nameB = b.name || b.firstName || '';
-      return nameA.localeCompare(nameB);
-    } else if (sortBy === 'salary') {
-      return (b.salary || 0) - (a.salary || 0);
-    } else if (sortBy === 'joiningDate') {
-      return new Date(b.joiningDate || 0) - new Date(a.joiningDate || 0);
-    }
-    return (a.id || 0) - (b.id || 0);
-  });
+  // Sorting is done by the server (sortBy is sent with each request), so keep the page order.
+  const sortedEmployees = filteredEmployees;
 
   // Calculate totalPages from totalEmployees (for pagination UI)
   const totalPages = Math.ceil(totalEmployees / pageSize) || 1;
