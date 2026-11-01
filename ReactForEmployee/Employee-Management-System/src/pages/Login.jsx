@@ -24,34 +24,25 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axiosInstance.post('/login', { username, password });
-      
-      // Check if response returned AuthResponse JSON object or string
-      if (typeof response.data === 'object') {
+
+      // Only a real AuthResponse from the backend counts as a successful login
+      if (response.data && typeof response.data === 'object' && response.data.token) {
         login(response.data);
         toast.success(`Welcome back, ${response.data.firstname || username}!`);
-        if (response.data.role === 'ROLE_EMPLOYEE') {
-          navigate('/my-profile');
-        } else {
-          navigate('/admin');
-        }
+        navigate(response.data.role === 'ROLE_EMPLOYEE' ? '/my-profile' : '/admin');
       } else {
-        login({ username, role: 'ROLE_ADMIN', firstname: 'Admin', lastname: 'User' });
-        navigate('/admin');
+        toast.error("Unexpected response from server. Please try again.");
       }
     } catch (error) {
-      console.warn("Backend auth failed, using client demo login:", error);
-      // Standalone demo login fallback
-      const isEmp = username.toLowerCase() === 'sarah' || username.toLowerCase() === 'alex';
-      const role = isEmp ? 'ROLE_EMPLOYEE' : 'ROLE_ADMIN';
-      login({ 
-        username: username || 'admin', 
-        role: role, 
-        firstname: isEmp ? 'Sarah' : 'Admin', 
-        lastname: isEmp ? 'Connor' : 'User',
-        employeeId: isEmp ? 1 : null
-      });
-      toast.success(`Signed in as ${isEmp ? 'Employee' : 'Administrator'}!`);
-      navigate(isEmp ? '/my-profile' : '/admin');
+      // No demo fallback: a failed login must never grant access
+      const status = error.response?.status;
+      if (status === 401 || status === 403) {
+        toast.error("Invalid username or password.");
+      } else if (error.code === 'ECONNABORTED') {
+        toast.error("Server is waking up (free tier). Please wait ~1 minute and try again.");
+      } else {
+        toast.error("Could not reach the server. Please try again shortly.");
+      }
     } finally {
       setLoading(false);
     }
