@@ -6,7 +6,7 @@ services:
     container_name: ems-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Sudubhat
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in your environment}
       MYSQL_DATABASE: employeedb
     ports:
       - "3306:3306"
@@ -23,7 +23,8 @@ services:
       SPRING_PROFILES_ACTIVE: mysql
       SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/employeedb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: Sudubhat
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in your environment}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in your environment}
     depends_on:
       - mysqldb
 

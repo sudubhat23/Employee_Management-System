@@ -10,6 +10,9 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import com.SpringBoot.configuration.UserPrinciple;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,7 +25,6 @@ import com.SpringBoot.service.EmployeeService;
 
 @RestController
 @RequestMapping("/employee")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Tag(name = "Employee Management API", description = "Endpoints for managing employee records, statistics, and reports")
 public class EmployeeController {
 
@@ -31,6 +33,7 @@ public class EmployeeController {
 
     @Operation(summary = "Create a new employee")
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<EmployeeEntity> addEmployee(@Valid @RequestBody EmployeeEntity employee) {
         EmployeeEntity created = employeeService.addEmployee(employee);
         return ResponseEntity.ok(created);
@@ -67,6 +70,7 @@ public class EmployeeController {
 
     @Operation(summary = "Update employee details")
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<EmployeeEntity> updateEmployee(@RequestBody EmployeeEntity employee) {
         EmployeeEntity updated = employeeService.updateEmployee(employee);
         return ResponseEntity.ok(updated);
@@ -74,6 +78,7 @@ public class EmployeeController {
 
     @Operation(summary = "Update employee details by ID")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<EmployeeEntity> updateEmployeeById(@PathVariable Integer id, @RequestBody EmployeeEntity employee) {
         employee.setId(id);
         EmployeeEntity updated = employeeService.updateEmployee(employee);
@@ -82,7 +87,12 @@ public class EmployeeController {
 
     @Operation(summary = "Self-service update of personal employee details (Employee portal)")
     @PutMapping("/{id}/self-update")
-    public ResponseEntity<EmployeeEntity> selfUpdateEmployee(@PathVariable Integer id, @RequestBody EmployeeEntity employee) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<EmployeeEntity> selfUpdateEmployee(@PathVariable Integer id, @RequestBody EmployeeEntity employee, Authentication auth) {
+        // Only admins/managers, or the employee who owns this record, may edit it
+        if (!canEditEmployee(auth, id)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
         EmployeeEntity updated = employeeService.selfUpdateEmployee(id, employee);
         if (updated == null) {
             return ResponseEntity.notFound().build();
@@ -92,6 +102,7 @@ public class EmployeeController {
 
     @Operation(summary = "Delete employee by ID")
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Boolean> deleteEmployee(@PathVariable Integer id) {
         Boolean result = employeeService.deleteEmployee(id);
         return ResponseEntity.ok(result);
@@ -99,6 +110,7 @@ public class EmployeeController {
 
     @Operation(summary = "Delete employee by ID (standard REST)")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Boolean> deleteEmployeeById(@PathVariable Integer id) {
         Boolean result = employeeService.deleteEmployee(id);
         return ResponseEntity.ok(result);
@@ -112,6 +124,7 @@ public class EmployeeController {
 
     @Operation(summary = "Export all employee records as CSV download")
     @GetMapping("/export/csv")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<InputStreamResource> exportToCsv() {
         ByteArrayInputStream stream = employeeService.exportEmployeesToCsv();
         HttpHeaders headers = new HttpHeaders();
@@ -121,5 +134,14 @@ public class EmployeeController {
                 .headers(headers)
                 .contentType(MediaType.parseMediaType("application/csv"))
                 .body(new InputStreamResource(stream));
+    }
+
+    private boolean canEditEmployee(Authentication auth, Integer employeeId) {
+        if (auth == null) return false;
+        boolean privileged = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MANAGER"));
+        if (privileged) return true;
+        Object principal = auth.getPrincipal();
+        return principal instanceof UserPrinciple p && employeeId.equals(p.getEmployeeId());
     }
 }

@@ -37,18 +37,15 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) // For H2 console
             .authorizeHttpRequests(auth -> auth
+                // Only login, registration, API docs and health are public.
+                // Everything else (employees, messages, AI, users) requires a valid JWT.
                 .requestMatchers(
-                    "/login", 
-                    "/register", 
-                    "/h2-console/**", 
-                    "/swagger-ui/**", 
-                    "/swagger-ui.html", 
+                    "/login",
+                    "/register",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
                     "/v3/api-docs/**",
-                    "/employee/**",
-                    "/users",
-                    "/user/**",
-                    "/api/messages/**",
-                    "/api/ai/**"
+                    "/actuator/health"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -64,9 +61,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource(
+            @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}") List<String> allowedOrigins) {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

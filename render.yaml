@@ -18,6 +18,11 @@ services:
         value: 8080
       - key: SPRING_PROFILES_ACTIVE
         value: default
+      # Auto-generated secret for signing login tokens (never stored in git)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://ems-frontend-h4gf.onrender.com
       - key: JAVA_TOOL_OPTIONS
         value: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx380m
       # Optional: To connect external MySQL (e.g. Aiven, Railway, Clever Cloud), set:

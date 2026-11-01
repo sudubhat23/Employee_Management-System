@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.SpringBoot.Rpository.UserRepo;
@@ -20,7 +21,6 @@ import com.SpringBoot.service.UserService;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Tag(name = "User Authentication API", description = "Endpoints for user registration, authentication, and JWT issuance")
 public class UserController {
 
@@ -45,29 +45,34 @@ public class UserController {
 
     @Operation(summary = "Get all registered users")
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> getUsers() {
         return userService.getUsers();
     }
 
     @Operation(summary = "Get user by ID")
     @GetMapping("/user/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public User getUser(@PathVariable Integer id) {
         return userService.getUser(id);
     }
 
     @Operation(summary = "Update user profile")
     @PutMapping("/user/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public User updateUser(@RequestBody User user, @PathVariable Integer id) {
         user.setId(id);
         return userService.updateUser(user);
     }
 
-    @Operation(summary = "Register new account")
+    @Operation(summary = "Register new account (always created as an employee)")
     @PostMapping("/register")
     public ResponseEntity<?> newUser(@RequestBody User user) {
         if (userRepo.existsByUsername(user.getUsername())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username is already taken");
         }
+        // Security: never trust a client-supplied role. Admins/managers are created by the server only.
+        user.setRole("ROLE_EMPLOYEE");
         User newUser = userService.addUser(user);
         String token = jwtUtils.generateToken(newUser.getUsername());
 
@@ -93,6 +98,7 @@ public class UserController {
 
     @Operation(summary = "Delete user account")
     @DeleteMapping("/user/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
     }
